@@ -1276,6 +1276,8 @@ function selectCalDay(day, dateStr) {
 function openCheckout(i) {
   if (!S.token) { toast('Bitte zuerst anmelden','error'); go('login'); return; }
   const c = S.results[i]; S.selectedConn = c; S.selectedSeat = null;
+  // Zahlungsmethoden garantiert verfügbar (lokale Konstante – kein Async-Race)
+  if (!S.payMethods || !S.payMethods.length) S.payMethods = Object.entries(PAYMENT_METHODS).map(([id,m])=>({id,...m}));
   S.selectedPay = S.payMethods[0]?.id || 'card';
   document.getElementById('mRoute').textContent = `${c.fromStation} → ${c.toStation}`;
   document.getElementById('mSummary').innerHTML = `
@@ -1700,8 +1702,8 @@ loadPopular();
 loadOpsBand();
 renderLegal('fahrgastrechte');
 
-// Load payment methods
-api('GET','/payment-methods').then(d=>{ S.payMethods=d; }).catch(()=>{ S.payMethods=[{id:'card',label:'Kreditkarte',icon:'💳'}]; });
+// Zahlungsmethoden direkt synchron laden (lokale Konstante – immer verfügbar)
+S.payMethods = Object.entries(PAYMENT_METHODS).map(([id,m])=>({id,...m}));
 </script>
 </body>
 </html>
