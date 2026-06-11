@@ -418,11 +418,13 @@ tr:hover td{background:var(--cream)}
     </div>
     <div class="mbody" style="padding:.9rem 1.1rem 1.1rem">
       <div style="background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.45);border-radius:8px;padding:.5rem .8rem;margin-bottom:.7rem;font-size:.78rem;">
-        ⚠️ <strong>Demo:</strong> Position aus dem Fahrplan berechnet (Abfahrt → Ankunft), kein echtes GPS des Zuges.
+        ⚠️ <strong>Hinweis:</strong> 🚆-Symbol = aus dem Fahrplan berechnet (Demo). 📍 <strong>Echtes GPS:</strong> aktiviere unten deinen Gerätestandort — sitzt du im Zug, ist das die echte Zugposition.
       </div>
       <div id="lmStatus" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-bottom:.7rem;"></div>
       <div id="liveMap" style="height:380px;border-radius:10px;border:1px solid var(--gray-l);"></div>
+      <div id="lmGpsInfo" style="display:none;margin-top:.7rem;padding:.55rem .8rem;border-radius:8px;background:rgba(46,139,87,.12);border:1px solid rgba(46,139,87,.45);font-size:.82rem;"></div>
       <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap;">
+        <button class="tc-btn" id="lmGpsBtn" onclick="toggleGps()" style="border-color:#2e8b57;color:#2e8b57;font-weight:600">📍 Echtes GPS aktivieren (mein Standort)</button>
         <button class="tc-btn" id="lmSimBtn" onclick="toggleLiveSim()">▶ Fahrt im Zeitraffer abspielen (40 s)</button>
         <button class="tc-btn" onclick="closeLiveMap()">Schließen</button>
       </div>
@@ -1785,9 +1787,57 @@ function toggleLiveSim(){
   if(LM.sim){ LM.simT0=Date.now(); document.getElementById('lmSimBtn').textContent='⏹ Zeitraffer stoppen'; }
   else document.getElementById('lmSimBtn').textContent='▶ Fahrt im Zeitraffer abspielen (40 s)';
 }
+// ── Echtes GPS (Geolocation API des Geräts) ────────────────────────────────
+function _gpsProjizieren(lat,lon){
+  // Projektion der GPS-Position auf die Strecke A→B → echter Fortschritt 0..1
+  const a=STATIONS.find(s=>s.id===LM.ticket.fromId), b=STATIONS.find(s=>s.id===LM.ticket.toId);
+  const ax=a.lon, ay=a.lat, bx=b.lon, by=b.lat, px=lon, py=lat;
+  const dx=bx-ax, dy=by-ay, len2=dx*dx+dy*dy;
+  const t=len2? Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/len2)) : 0;
+  return t;
+}
+function toggleGps(){
+  const btn=document.getElementById('lmGpsBtn'), info=document.getElementById('lmGpsInfo');
+  if(LM.gpsWatch!=null){ // ausschalten
+    navigator.geolocation.clearWatch(LM.gpsWatch); LM.gpsWatch=null;
+    if(LM.gpsMarker){ LM.map.removeLayer(LM.gpsMarker); LM.gpsMarker=null; }
+    if(LM.gpsKreis){ LM.map.removeLayer(LM.gpsKreis); LM.gpsKreis=null; }
+    btn.textContent='📍 Echtes GPS aktivieren (mein Standort)'; info.style.display='none';
+    return;
+  }
+  if(!('geolocation' in navigator)){ toast('Dieses Gerät/Browser unterstützt kein GPS','error'); return; }
+  btn.textContent='📡 GPS wird angefragt…';
+  LM.gpsWatch=navigator.geolocation.watchPosition(pos=>{
+    const {latitude:lat, longitude:lon, accuracy}=pos.coords;
+    if(!LM.map) return;
+    if(!LM.gpsMarker){
+      LM.gpsMarker=L.circleMarker([lat,lon],{radius:8,color:'#fff',weight:2,fillColor:'#2e8b57',fillOpacity:1}).addTo(LM.map).bindPopup('📍 Dein echter Standort (GPS)');
+      LM.gpsKreis=L.circle([lat,lon],{radius:accuracy,color:'#2e8b57',weight:1,fillOpacity:.08}).addTo(LM.map);
+      LM.map.setView([lat,lon],Math.max(LM.map.getZoom(),9));
+    } else { LM.gpsMarker.setLatLng([lat,lon]); LM.gpsKreis.setLatLng([lat,lon]); LM.gpsKreis.setRadius(accuracy); }
+    const t=_gpsProjizieren(lat,lon);
+    const b=STATIONS.find(s=>s.id===LM.ticket.toId);
+    const restKm=Math.round(_dist({lat,lon},{lat:b.lat,lon:b.lon}));
+    document.getElementById('lmGpsBtn').textContent='📍 GPS aktiv – ausschalten';
+    const info=document.getElementById('lmGpsInfo');
+    info.style.display='block';
+    info.innerHTML=`✅ <strong>Echte GPS-Position</strong> (Genauigkeit ±${Math.round(accuracy)} m) · `+
+      `Streckenfortschritt laut GPS: <strong>${Math.round(t*100)} %</strong> · `+
+      `noch ~${restKm} km bis ${b.name}`;
+  }, err=>{
+    const meld={1:'GPS-Zugriff verweigert – bitte in den Browser-Einstellungen erlauben',2:'Position nicht verfügbar',3:'GPS-Zeitüberschreitung'}[err.code]||err.message;
+    toast('📍 '+meld,'error',6000);
+    document.getElementById('lmGpsBtn').textContent='📍 Echtes GPS aktivieren (mein Standort)';
+    if(LM.gpsWatch!=null){ navigator.geolocation.clearWatch(LM.gpsWatch); LM.gpsWatch=null; }
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:15000});
+}
 function closeLiveMap(){
   document.getElementById('mapOverlay').classList.add('hid');
   if(LM.timer){ clearInterval(LM.timer); LM.timer=null; }
+  if(LM.gpsWatch!=null){ navigator.geolocation.clearWatch(LM.gpsWatch); LM.gpsWatch=null; }
+  LM.gpsMarker=null; LM.gpsKreis=null;
+  const gi=document.getElementById('lmGpsInfo'); if(gi) gi.style.display='none';
+  const gb=document.getElementById('lmGpsBtn'); if(gb) gb.textContent='📍 Echtes GPS aktivieren (mein Standort)';
   if(LM.map){ LM.map.remove(); LM.map=null; }
   LM.sim=false; LM.ticket=null;
 }
