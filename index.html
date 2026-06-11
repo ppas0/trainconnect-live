@@ -381,10 +381,13 @@ tr:hover td{background:var(--cream)}
         <div class="pay-grid" id="payGrid"></div>
       </div>
 
+      <div id="demoNote" style="background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.45);border-radius:8px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.82rem;line-height:1.5;">
+        ⚠️ <strong>Demo-Modus:</strong> Dies ist eine Demonstrations-Plattform. Es wird <strong>kein echtes Geld abgebucht</strong> und keine Zahlungsdaten abgefragt. Bei einer echten Buchung würdest du jetzt zu deinem Zahlungsanbieter (z.&nbsp;B. PayPal) weitergeleitet.
+      </div>
       <button class="confirm-btn" id="confirmBtn" onclick="confirmBook()">
-        Jetzt kostenpflichtig buchen
+        Demo-Buchung durchführen (kostenlos)
       </button>
-      <div class="secure-note">🔒 Sichere, verschlüsselte Verbindung</div>
+      <div class="secure-note">🔒 Demo-Plattform – keine echten Zahlungen, keine Zahlungsdaten</div>
     </div>
   </div>
 </div>
@@ -965,7 +968,7 @@ async function api(method, path, body) {
     db.tickets.push(ticket);
     const u=db.users.find(x=>x.id===me.id); if(u) u.loyaltyPoints=Math.max(0,(u.loyaltyPoints||0)+Math.floor(c.price));
     TCDB.save(db);
-    return { success:true, ticket, paymentId, message:'Zahlung erfolgreich! Dein Ticket ist bereit.' };
+    return { success:true, ticket, paymentId, message:'Demo-Buchung erfolgreich – es wurde KEIN Geld abgebucht. Dein Demo-Ticket ist bereit.' };
   }
 
   // TICKETS
@@ -1275,6 +1278,8 @@ function selectCalDay(day, dateStr) {
 // ═══════════════════════════════════════════════════════════════════════════
 function openCheckout(i) {
   if (!S.token) { toast('Bitte zuerst anmelden','error'); go('login'); return; }
+  S.demoConfirmed = false;
+  const _cb=document.getElementById('confirmBtn'); if(_cb){ _cb.textContent='Demo-Buchung durchführen (kostenlos)'; _cb.style.background=''; }
   const c = S.results[i]; S.selectedConn = c; S.selectedSeat = null;
   // Zahlungsmethoden garantiert verfügbar (lokale Konstante – kein Async-Race)
   if (!S.payMethods || !S.payMethods.length) S.payMethods = Object.entries(PAYMENT_METHODS).map(([id,m])=>({id,...m}));
@@ -1327,7 +1332,14 @@ function pickSeat(btn, sn) {
 async function confirmBook() {
   if (!S.selectedConn) return;
   const btn = document.getElementById('confirmBtn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Zahlung wird verarbeitet…';
+  if (!S.demoConfirmed) {
+    S.demoConfirmed = true;
+    btn.textContent = '✓ Verstanden – Demo-Buchung jetzt bestätigen';
+    btn.style.background = '#C9A227';
+    return;
+  }
+  S.demoConfirmed = false; btn.style.background='';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Demo-Zahlung wird simuliert…';
   try {
     const r = await api('POST','/checkout',{
       connection: S.selectedConn, paymentMethod: S.selectedPay, seatPreference: S.selectedSeat
@@ -1337,7 +1349,7 @@ async function confirmBook() {
     api('GET','/auth/me').then(u=>{ S.user.loyaltyPoints=u.loyaltyPoints; localStorage.setItem('tc_user',JSON.stringify(S.user)); updateNav(); }).catch(()=>{});
     setTimeout(()=>goAuth('tickets'),1800);
   } catch(e) { toast('Buchungsfehler: '+e.message,'error'); }
-  finally { btn.disabled=false; btn.textContent='Jetzt kostenpflichtig buchen'; }
+  finally { btn.disabled=false; btn.textContent='Demo-Buchung durchführen (kostenlos)'; }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
