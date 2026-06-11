@@ -336,6 +336,8 @@ tr:hover td{background:var(--cream)}
   .pay-grid{grid-template-columns:1fr 1fr}
 }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="stations.js"></script>
 </head>
 <body>
@@ -403,6 +405,27 @@ tr:hover td{background:var(--cream)}
       <p style="color:var(--gray);font-size:.9rem;margin-bottom:1.25rem" id="cInfo"></p>
       <button class="confirm-btn" style="background:var(--red);color:white" onclick="doCancel()">Stornierung bestätigen</button>
       <button class="tc-btn" style="width:100%;margin-top:.5rem;text-align:center" onclick="closeCancelModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE-KARTE MODAL -->
+<div class="overlay hid" id="mapOverlay">
+  <div class="modal" style="max-width:760px;width:94vw">
+    <div class="mhd">
+      <div><div class="mtitle">🗺 Live-Karte</div><div class="msub" id="lmRoute"></div></div>
+      <button class="mclose" onclick="closeLiveMap()">×</button>
+    </div>
+    <div class="mbody" style="padding:.9rem 1.1rem 1.1rem">
+      <div style="background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.45);border-radius:8px;padding:.5rem .8rem;margin-bottom:.7rem;font-size:.78rem;">
+        ⚠️ <strong>Demo:</strong> Position aus dem Fahrplan berechnet (Abfahrt → Ankunft), kein echtes GPS des Zuges.
+      </div>
+      <div id="lmStatus" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem;margin-bottom:.7rem;"></div>
+      <div id="liveMap" style="height:380px;border-radius:10px;border:1px solid var(--gray-l);"></div>
+      <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap;">
+        <button class="tc-btn" id="lmSimBtn" onclick="toggleLiveSim()">▶ Fahrt im Zeitraffer abspielen (40 s)</button>
+        <button class="tc-btn" onclick="closeLiveMap()">Schließen</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1397,6 +1420,7 @@ async function loadTickets() {
           <span>ID: ${t.paymentId||'—'}</span>
         </div>
         ${t.status==='confirmed'?`<div class="tc-actions">
+          <button class="tc-btn" onclick="openLiveMap('${t.id}')">🗺 Live-Karte</button>
           <button class="tc-btn" onclick="downloadTicket('${t.id}','${t.ticketCode}')">⬇ Ticket herunterladen</button>
           <button class="tc-btn danger" onclick="openCancelModal('${t.id}','${t.fromStation}','${t.toStation}','${t.price}','${t.departureTime}')">✗ Stornieren</button>
         </div>`:''}
@@ -1700,6 +1724,73 @@ const PAY_LABELS = { card:'💳 Kreditkarte', paypal:'🅿️ PayPal', apple_pay
 function payLabel(m) { return PAY_LABELS[m]||m; }
 const AM_ICONS = { wifi:'📶 WLAN', dining:'🍽 Speisewagen', sleepingCar:'🛏 Schlafwagen', couchette:'🛋 Liegewagen', powerOutlets:'🔌 Steckdosen', bikeStorage:'🚲 Fahrrad', wheelchair:'♿ Rollstuhl', quiet:'🔇 Ruhezone', airConditioning:'❄️ Klima' };
 function amIcon(k) { return AM_ICONS[k]||k; }
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  LIVE-KARTE (Demo: Position aus Fahrplan interpoliert, kein echtes GPS)
+// ═══════════════════════════════════════════════════════════════════════════
+let LM = { map:null, marker:null, line:null, ticket:null, timer:null, sim:false, simT0:0 };
+
+function _lmProgress() {
+  // Fortschritt 0..1: im Sim-Modus Zeitraffer (40 s), sonst echte Uhrzeit vs. Fahrplan
+  const dep=new Date(LM.ticket.departureTime).getTime(), arr=new Date(LM.ticket.arrivalTime).getTime();
+  if (LM.sim) return Math.min(1,(Date.now()-LM.simT0)/40000);
+  return Math.max(0, Math.min(1, (Date.now()-dep)/(arr-dep)));
+}
+function _lmPos(p){
+  const a=STATIONS.find(s=>s.id===LM.ticket.fromId), b=STATIONS.find(s=>s.id===LM.ticket.toId);
+  return [a.lat+(b.lat-a.lat)*p, a.lon+(b.lon-a.lon)*p];
+}
+function _lmRender(){
+  if(!LM.map||!LM.ticket) return;
+  const p=_lmProgress(), pos=_lmPos(p);
+  LM.marker.setLatLng(pos);
+  const dep=new Date(LM.ticket.departureTime), arr=new Date(LM.ticket.arrivalTime), now=new Date();
+  let status, farbe='var(--navy)';
+  if (LM.sim) status='🎬 Zeitraffer: '+Math.round(p*100)+'% der Strecke';
+  else if (now<dep) status='🕐 Vor Abfahrt — Zug startet '+fmtDT(LM.ticket.departureTime);
+  else if (p>=1) status='✅ Angekommen in '+LM.ticket.toStation+' ('+fmtTime(LM.ticket.arrivalTime)+')';
+  else status='🚆 Unterwegs — '+Math.round(p*100)+'% der Strecke, Ankunft '+fmtTime(LM.ticket.arrivalTime);
+  const restMin=Math.max(0,Math.round((arr-now)/60000));
+  document.getElementById('lmStatus').innerHTML=
+    `<span style="font-weight:700;color:${farbe}">${status}</span>`+
+    (!LM.sim && now>=dep && p<1 ? `<span>· noch ca. ${Math.floor(restMin/60)}h ${restMin%60}min</span>` : '')+
+    `<span>· ${LM.ticket.trainNumber}</span><span>· Sitz ${LM.ticket.seatNumber||'—'}</span>`;
+  if (LM.sim && p>=1) toggleLiveSim();
+}
+async function openLiveMap(tid){
+  try{
+    const t=await api('GET','/tickets/'+tid);
+    LM.ticket=t;
+    const a=STATIONS.find(s=>s.id===t.fromId), b=STATIONS.find(s=>s.id===t.toId);
+    if(!a||!b){ toast('Bahnhofskoordinaten nicht gefunden','error'); return; }
+    document.getElementById('lmRoute').textContent=t.fromStation+' → '+t.toStation+' · '+fmtDate(t.departureTime);
+    document.getElementById('mapOverlay').classList.remove('hid');
+    if(LM.map){ LM.map.remove(); LM.map=null; }
+    LM.sim=false; document.getElementById('lmSimBtn').textContent='▶ Fahrt im Zeitraffer abspielen (40 s)';
+    LM.map=L.map('liveMap');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(LM.map);
+    LM.line=L.polyline([[a.lat,a.lon],[b.lat,b.lon]],{color:'#0f1f3d',weight:3,dashArray:'6 8'}).addTo(LM.map);
+    L.marker([a.lat,a.lon]).addTo(LM.map).bindPopup('Start: '+t.fromStation);
+    L.marker([b.lat,b.lon]).addTo(LM.map).bindPopup('Ziel: '+t.toStation);
+    LM.marker=L.marker(_lmPos(_lmProgress()),{icon:L.divIcon({html:'<div style="font-size:26px;line-height:26px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))">🚆</div>',className:'',iconSize:[26,26],iconAnchor:[13,13]})}).addTo(LM.map);
+    LM.map.fitBounds(LM.line.getBounds(),{padding:[36,36]});
+    _lmRender();
+    LM.timer=setInterval(_lmRender,1000);
+    setTimeout(()=>{ LM.map.invalidateSize(); LM.map.fitBounds(LM.line.getBounds(),{padding:[36,36]}); },250);
+  }catch(e){ toast('Live-Karte: '+e.message,'error'); }
+}
+function toggleLiveSim(){
+  LM.sim=!LM.sim;
+  if(LM.sim){ LM.simT0=Date.now(); document.getElementById('lmSimBtn').textContent='⏹ Zeitraffer stoppen'; }
+  else document.getElementById('lmSimBtn').textContent='▶ Fahrt im Zeitraffer abspielen (40 s)';
+}
+function closeLiveMap(){
+  document.getElementById('mapOverlay').classList.add('hid');
+  if(LM.timer){ clearInterval(LM.timer); LM.timer=null; }
+  if(LM.map){ LM.map.remove(); LM.map=null; }
+  LM.sim=false; LM.ticket=null;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  INIT
