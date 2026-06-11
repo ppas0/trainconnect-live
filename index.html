@@ -860,10 +860,14 @@ function _searchRoutes({fromId,toId,date,passengers,seatClass}){
 function _priceCalendar({fromId,toId,month,year,passengers,seatClass}){
   const from=STATIONS.find(s=>s.id===fromId), to=STATIONS.find(s=>s.id===toId);
   if(!from||!to) return [];
-  const base=_basePrice(_dist(from,to),seatClass,passengers);
+  // Kalenderpreis = günstigste echte Verbindung des Tages (gleiche Engine wie die Suche
+  // → Kalender und Suchergebnisse stimmen garantiert überein)
   const days=new Date(year,month,0).getDate(), cal=[];
-  const rnd=_rng(_hashSeed(DAY_SEED()+'|cal|'+fromId+'|'+toId+'|'+month+'|'+year+'|'+seatClass+'|'+passengers));
-  for(let d=1;d<=days;d++){ const v=PRICE_CALENDAR_VARIATION[(d-1)%PRICE_CALENDAR_VARIATION.length]; cal.push({day:d,price:Math.round(base*v*(0.85+rnd()*0.3))}); }
+  for(let d=1;d<=days;d++){
+    const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const res=_searchRoutes({fromId,toId,date:ds,passengers,seatClass});
+    cal.push({day:d,price:res.length?Math.min(...res.map(r=>r.price)):0});
+  }
   return cal;
 }
 function _token(uid){ return 'tck.'+btoa(uid); }
