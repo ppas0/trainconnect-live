@@ -336,6 +336,7 @@ tr:hover td{background:var(--cream)}
   .pay-grid{grid-template-columns:1fr 1fr}
 }
 </style>
+<script src="stations.js"></script>
 </head>
 <body>
 
@@ -591,10 +592,10 @@ tr:hover td{background:var(--cream)}
     </div>
 
     <div class="stats-row">
-      <div class="stat-item"><div class="n">300+</div><div class="d">Bahnhöfe</div></div>
-      <div class="stat-item"><div class="n">16</div><div class="d">Bahngesellschaften</div></div>
+      <div class="stat-item"><div class="n">51.496</div><div class="d">Bahnhöfe</div></div>
+      <div class="stat-item"><div class="n">40+</div><div class="d">Bahngesellschaften</div></div>
       <div class="stat-item"><div class="n">11</div><div class="d">Sprachen</div></div>
-      <div class="stat-item"><div class="n">32</div><div class="d">Länder</div></div>
+      <div class="stat-item"><div class="n">42</div><div class="d">Länder</div></div>
     </div>
 
     <div class="about-grid">
@@ -718,62 +719,14 @@ const TCDB = {
   }
 };
 
-const STATIONS = [
-  { id:'BER', name:'Berlin Hbf', city:'Berlin', country:'DE', lat:52.5251, lon:13.3694 },
-  { id:'MUC', name:'München Hbf', city:'München', country:'DE', lat:48.1402, lon:11.5602 },
-  { id:'HAM', name:'Hamburg Hbf', city:'Hamburg', country:'DE', lat:53.5530, lon:10.0061 },
-  { id:'FRA', name:'Frankfurt Hbf', city:'Frankfurt', country:'DE', lat:50.1072, lon:8.6637 },
-  { id:'KOL', name:'Köln Hbf', city:'Köln', country:'DE', lat:50.9430, lon:6.9590 },
-  { id:'STU', name:'Stuttgart Hbf', city:'Stuttgart', country:'DE', lat:48.7840, lon:9.1827 },
-  { id:'DUS', name:'Düsseldorf Hbf', city:'Düsseldorf', country:'DE', lat:51.2199, lon:6.7942 },
-  { id:'DOR', name:'Dortmund Hbf', city:'Dortmund', country:'DE', lat:51.5178, lon:7.4593 },
-  { id:'NUR', name:'Nürnberg Hbf', city:'Nürnberg', country:'DE', lat:49.4454, lon:11.0820 },
-  { id:'DRE', name:'Dresden Hbf', city:'Dresden', country:'DE', lat:51.0407, lon:13.7326 },
-  { id:'ZRH', name:'Zürich HB', city:'Zürich', country:'CH', lat:47.3783, lon:8.5404 },
-  { id:'BSL', name:'Basel SBB', city:'Basel', country:'CH', lat:47.5476, lon:7.5899 },
-  { id:'GEN', name:'Genf Cornavin', city:'Genf', country:'CH', lat:46.2104, lon:6.1422 },
-  { id:'BRN', name:'Bern Hbf', city:'Bern', country:'CH', lat:46.9488, lon:7.4393 },
-  { id:'LUZ', name:'Luzern', city:'Luzern', country:'CH', lat:47.0502, lon:8.3093 },
-  { id:'VIE', name:'Wien Hbf', city:'Wien', country:'AT', lat:48.1848, lon:16.3762 },
-  { id:'SZG', name:'Salzburg Hbf', city:'Salzburg', country:'AT', lat:47.8126, lon:13.0454 },
-  { id:'IBK', name:'Innsbruck Hbf', city:'Innsbruck', country:'AT', lat:47.2639, lon:11.4014 },
-  { id:'GRZ', name:'Graz Hbf', city:'Graz', country:'AT', lat:47.0707, lon:15.3913 },
-  { id:'CDG', name:'Paris Gare du Nord', city:'Paris', country:'FR', lat:48.8809, lon:2.3553 },
-  { id:'PGL', name:'Paris Gare de Lyon', city:'Paris', country:'FR', lat:48.8450, lon:2.3735 },
-  { id:'LYO', name:'Lyon Part-Dieu', city:'Lyon', country:'FR', lat:45.7606, lon:4.8598 },
-  { id:'MRS', name:'Marseille St-Charles', city:'Marseille', country:'FR', lat:43.3026, lon:5.3808 },
-  { id:'NCE', name:'Nice Ville', city:'Nizza', country:'FR', lat:43.7045, lon:7.2619 },
-  { id:'BDX', name:'Bordeaux St-Jean', city:'Bordeaux', country:'FR', lat:44.8255, lon:-0.5561 },
-  { id:'AMS', name:'Amsterdam Centraal', city:'Amsterdam', country:'NL', lat:52.3791, lon:4.9003 },
-  { id:'RTD', name:'Rotterdam Centraal', city:'Rotterdam', country:'NL', lat:51.9248, lon:4.4687 },
-  { id:'DHA', name:'Den Haag Centraal', city:'Den Haag', country:'NL', lat:52.0800, lon:4.3250 },
-  { id:'BRU', name:'Brüssel Midi', city:'Brüssel', country:'BE', lat:50.8354, lon:4.3363 },
-  { id:'ANT', name:'Antwerpen Centraal', city:'Antwerpen', country:'BE', lat:51.2172, lon:4.4215 },
-  { id:'ROM', name:'Roma Termini', city:'Rom', country:'IT', lat:41.9009, lon:12.5012 },
-  { id:'MIL', name:'Milano Centrale', city:'Mailand', country:'IT', lat:45.4860, lon:9.2045 },
-  { id:'VEN', name:'Venezia Santa Lucia', city:'Venedig', country:'IT', lat:45.4414, lon:12.3209 },
-  { id:'FLR', name:'Firenze SMN', city:'Florenz', country:'IT', lat:43.7746, lon:11.2480 },
-  { id:'NAP', name:'Napoli Centrale', city:'Neapel', country:'IT', lat:40.8536, lon:14.2700 },
-  { id:'MAD', name:'Madrid Atocha', city:'Madrid', country:'ES', lat:40.4065, lon:-3.6892 },
-  { id:'BCN', name:'Barcelona Sants', city:'Barcelona', country:'ES', lat:41.3795, lon:2.1404 },
-  { id:'SVQ', name:'Sevilla Santa Justa', city:'Sevilla', country:'ES', lat:37.3916, lon:-5.9757 },
-  { id:'LON', name:'London St Pancras', city:'London', country:'GB', lat:51.5308, lon:-0.1233 },
-  { id:'LOV', name:'London Victoria', city:'London', country:'GB', lat:51.4952, lon:-0.1441 },
-  { id:'EDI', name:'Edinburgh Waverley', city:'Edinburgh', country:'GB', lat:55.9521, lon:-3.1897 },
-  { id:'MAN', name:'Manchester Piccadilly', city:'Manchester', country:'GB', lat:53.4771, lon:-2.2309 },
-  { id:'DUB', name:'Dublin Heuston', city:'Dublin', country:'IE', lat:53.3461, lon:-6.2931 },
-  { id:'PRG', name:'Praha hl. n.', city:'Prag', country:'CZ', lat:50.0831, lon:14.4356 },
-  { id:'WAW', name:'Warszawa Centralna', city:'Warschau', country:'PL', lat:52.2288, lon:21.0031 },
-  { id:'BUD', name:'Budapest Keleti', city:'Budapest', country:'HU', lat:47.5001, lon:19.0836 },
-  { id:'BRQ', name:'Brno hl. n.', city:'Brünn', country:'CZ', lat:49.1909, lon:16.6118 },
-  { id:'KRK', name:'Kraków Główny', city:'Krakau', country:'PL', lat:50.0670, lon:19.9450 },
-  { id:'CPH', name:'København H', city:'Kopenhagen', country:'DK', lat:55.6727, lon:12.5644 },
-  { id:'STO', name:'Stockholm C', city:'Stockholm', country:'SE', lat:59.3299, lon:18.0575 },
-  { id:'OSL', name:'Oslo S', city:'Oslo', country:'NO', lat:59.9110, lon:10.7526 },
-];
+// STATIONS wird aus stations.js geladen (51.496 echte Bahnhöfe, Open Data trainline-eu)
 const OPERATORS = { DE:'DB (Deutsche Bahn)', CH:'SBB CFF FFS', AT:'ÖBB', FR:'SNCF', NL:'NS',
-  BE:'NMBS/SNCB', IT:'Trenitalia', ES:'Renfe', GB:'Eurostar', IE:'Irish Rail',
-  CZ:'RegioJet', PL:'PKP Intercity', HU:'MÁV-Start', DK:'DSB', SE:'SJ', NO:'Vy' };
+  BE:'NMBS/SNCB', IT:'Trenitalia', ES:'Renfe', GB:'National Rail', IE:'Irish Rail',
+  CZ:'České dráhy', PL:'PKP Intercity', HU:'MÁV-Start', DK:'DSB', SE:'SJ', NO:'Vy',
+  PT:'CP Comboios', FI:'VR', GR:'Hellenic Train', RO:'CFR Călători', BG:'BDŽ', HR:'HŽPP',
+  SI:'SŽ', SK:'ZSSK', RS:'Srbija Voz', BA:'ŽFBH', MK:'Makedonski Železnici', AL:'HSH',
+  ME:'ŽPCG', LU:'CFL', EE:'Elron', LV:'Vivi', LT:'LTG Link', UA:'Ukrzaliznytsia', TR:'TCDD',
+  MD:'CFM', BY:'BČ', AD:'FGC/SNCF', MT:'Malta Public Transport', RU:'RŽD', LI:'ÖBB/SBB', CY:'—' };
 const OPERATOR_RIGHTS = {
   'DB (Deutsche Bahn)':'https://www.bahn.de/hilfe/fahrgastrechte',
   'SBB CFF FFS':'https://www.sbb.ch/de/hilfe-und-kontakt/kundenservice/entschaedigungen.html',
@@ -820,20 +773,47 @@ const POPULAR_ROUTES = [
 const OPERATORS_INFO = [
   { code:'DE', flag:'🇩🇪', name:'Deutschland', operator:'DB (Deutsche Bahn)', url:'https://www.bahn.de/hilfe/fahrgastrechte', refund60:'25%', refund120:'50%' },
   { code:'AT', flag:'🇦🇹', name:'Österreich', operator:'ÖBB', url:'https://www.oebb.at/de/reise-information/fahrgastrechte', refund60:'25%', refund120:'50%' },
-  { code:'CH', flag:'🇨🇭', name:'Schweiz', operator:'SBB CFF FFS', url:'https://www.sbb.ch/de/hilfe-und-kontakt/kundenservice/entschaedigungen.html', refund60:'25%', refund120:'50%' },
-  { code:'FR', flag:'🇫🇷', name:'Frankreich', operator:'SNCF', url:'https://www.sncf-connect.com/aide/mes-droits-de-voyageur', refund60:'25%', refund120:'50%' },
-  { code:'IT', flag:'🇮🇹', name:'Italien', operator:'Trenitalia', url:'https://www.trenitalia.com/it/informazioni/Diritti_del_Viaggiatore.html', refund60:'25%', refund120:'50%' },
+  { code:'CH', flag:'🇨🇭', name:'Schweiz', operator:'SBB CFF FFS', url:'https://www.sbb.ch', refund60:'25%', refund120:'50%' },
+  { code:'FR', flag:'🇫🇷', name:'Frankreich', operator:'SNCF', url:'https://www.sncf-connect.com', refund60:'25%', refund120:'50%' },
+  { code:'IT', flag:'🇮🇹', name:'Italien', operator:'Trenitalia', url:'https://www.trenitalia.com', refund60:'25%', refund120:'50%' },
   { code:'ES', flag:'🇪🇸', name:'Spanien', operator:'Renfe', url:'https://www.renfe.com', refund60:'25%', refund120:'50%' },
+  { code:'PT', flag:'🇵🇹', name:'Portugal', operator:'CP Comboios', url:'https://www.cp.pt', refund60:'25%', refund120:'50%' },
   { code:'NL', flag:'🇳🇱', name:'Niederlande', operator:'NS', url:'https://www.ns.nl', refund60:'25%', refund120:'50%' },
   { code:'BE', flag:'🇧🇪', name:'Belgien', operator:'NMBS/SNCB', url:'https://www.belgiantrain.be', refund60:'25%', refund120:'50%' },
-  { code:'GB', flag:'🇬🇧', name:'Grossbritannien', operator:'Eurostar', url:'https://www.eurostar.com/uk-en/travel-info/travel-updates', refund60:'25%', refund120:'50%' },
+  { code:'LU', flag:'🇱🇺', name:'Luxemburg', operator:'CFL', url:'https://www.cfl.lu', refund60:'25%', refund120:'50%' },
+  { code:'GB', flag:'🇬🇧', name:'Großbritannien', operator:'National Rail / Eurostar', url:'https://www.nationalrail.co.uk', refund60:'25%', refund120:'50%' },
   { code:'IE', flag:'🇮🇪', name:'Irland', operator:'Irish Rail', url:'https://www.irishrail.ie', refund60:'25%', refund120:'50%' },
-  { code:'CZ', flag:'🇨🇿', name:'Tschechien', operator:'RegioJet', url:'https://www.regiojet.de', refund60:'25%', refund120:'50%' },
-  { code:'PL', flag:'🇵🇱', name:'Polen', operator:'PKP Intercity', url:'https://www.pkpintercity.pl', refund60:'25%', refund120:'50%' },
-  { code:'HU', flag:'🇭🇺', name:'Ungarn', operator:'MÁV-Start', url:'https://www.mavcsoport.hu', refund60:'25%', refund120:'50%' },
   { code:'DK', flag:'🇩🇰', name:'Dänemark', operator:'DSB', url:'https://www.dsb.dk', refund60:'25%', refund120:'50%' },
   { code:'SE', flag:'🇸🇪', name:'Schweden', operator:'SJ', url:'https://www.sj.se', refund60:'25%', refund120:'50%' },
-  { code:'NO', flag:'🇳🇴', name:'Norwegen', operator:'Vy', url:'https://www.vy.no', refund60:'25%', refund120:'50%' } ];
+  { code:'NO', flag:'🇳🇴', name:'Norwegen', operator:'Vy', url:'https://www.vy.no', refund60:'25%', refund120:'50%' },
+  { code:'FI', flag:'🇫🇮', name:'Finnland', operator:'VR', url:'https://www.vr.fi', refund60:'25%', refund120:'50%' },
+  { code:'PL', flag:'🇵🇱', name:'Polen', operator:'PKP Intercity', url:'https://www.pkpintercity.pl', refund60:'25%', refund120:'50%' },
+  { code:'CZ', flag:'🇨🇿', name:'Tschechien', operator:'České dráhy', url:'https://www.cd.cz', refund60:'25%', refund120:'50%' },
+  { code:'SK', flag:'🇸🇰', name:'Slowakei', operator:'ZSSK', url:'https://www.zssk.sk', refund60:'25%', refund120:'50%' },
+  { code:'HU', flag:'🇭🇺', name:'Ungarn', operator:'MÁV-Start', url:'https://www.mavcsoport.hu', refund60:'25%', refund120:'50%' },
+  { code:'RO', flag:'🇷🇴', name:'Rumänien', operator:'CFR Călători', url:'https://www.cfrcalatori.ro', refund60:'25%', refund120:'50%' },
+  { code:'BG', flag:'🇧🇬', name:'Bulgarien', operator:'BDŽ', url:'https://www.bdz.bg', refund60:'25%', refund120:'50%' },
+  { code:'GR', flag:'🇬🇷', name:'Griechenland', operator:'Hellenic Train', url:'https://www.hellenictrain.gr', refund60:'25%', refund120:'50%' },
+  { code:'HR', flag:'🇭🇷', name:'Kroatien', operator:'HŽPP', url:'https://www.hzpp.hr', refund60:'25%', refund120:'50%' },
+  { code:'SI', flag:'🇸🇮', name:'Slowenien', operator:'SŽ', url:'https://www.slo-zeleznice.si', refund60:'25%', refund120:'50%' },
+  { code:'RS', flag:'🇷🇸', name:'Serbien', operator:'Srbija Voz', url:'https://www.srbijavoz.rs', refund60:'25%', refund120:'50%' },
+  { code:'BA', flag:'🇧🇦', name:'Bosnien-Herz.', operator:'ŽFBH', url:'https://www.zfbh.ba', refund60:'25%', refund120:'50%' },
+  { code:'MK', flag:'🇲🇰', name:'Nordmazedonien', operator:'Makedonski Železnici', url:'https://mzt.mk', refund60:'25%', refund120:'50%' },
+  { code:'AL', flag:'🇦🇱', name:'Albanien', operator:'HSH', url:'https://www.hsh.com.al', refund60:'25%', refund120:'50%' },
+  { code:'ME', flag:'🇲🇪', name:'Montenegro', operator:'ŽPCG', url:'https://www.zpcg.me', refund60:'25%', refund120:'50%' },
+  { code:'EE', flag:'🇪🇪', name:'Estland', operator:'Elron', url:'https://elron.ee', refund60:'25%', refund120:'50%' },
+  { code:'LV', flag:'🇱🇻', name:'Lettland', operator:'Vivi', url:'https://www.vivi.lv', refund60:'25%', refund120:'50%' },
+  { code:'LT', flag:'🇱🇹', name:'Litauen', operator:'LTG Link', url:'https://ltglink.lt', refund60:'25%', refund120:'50%' },
+  { code:'UA', flag:'🇺🇦', name:'Ukraine', operator:'Ukrzaliznytsia', url:'https://uz.gov.ua', refund60:'25%', refund120:'50%' },
+  { code:'TR', flag:'🇹🇷', name:'Türkei', operator:'TCDD', url:'https://www.tcdd.gov.tr', refund60:'25%', refund120:'50%' },
+  { code:'MD', flag:'🇲🇩', name:'Moldau', operator:'CFM', url:'https://www.cfm.md', refund60:'25%', refund120:'50%' },
+  { code:'LI', flag:'🇱🇮', name:'Liechtenstein', operator:'ÖBB/SBB', url:'https://www.oebb.at', refund60:'25%', refund120:'50%' },
+  { code:'AD', flag:'🇦🇩', name:'Andorra', operator:'SNCF/FGC', url:'https://www.sncf.com', refund60:'25%', refund120:'50%' },
+  { code:'BY', flag:'🇧🇾', name:'Belarus', operator:'BČ', url:'https://www.rw.by', refund60:'25%', refund120:'50%' },
+  { code:'MT', flag:'🇲🇹', name:'Malta', operator:'Malta Public Transport', url:'https://www.publictransport.com.mt', refund60:'25%', refund120:'50%' },
+  { code:'RU', flag:'🇷🇺', name:'Russland (Exklave)', operator:'RŽD', url:'https://www.rzd.ru', refund60:'25%', refund120:'50%' },
+  { code:'CY', flag:'🇨🇾', name:'Zypern', operator:'(kein Bahnverkehr)', url:'https://www.cyprusbybus.com', refund60:'25%', refund120:'50%' },
+];
 
 function _dist(a,b){ const dx=a.lon-b.lon, dy=a.lat-b.lat; return Math.sqrt(dx*dx+dy*dy)*111; }
 function _dur(d){ const m=Math.max(30,Math.round(d/200*60)); return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}min`; }
@@ -861,7 +841,7 @@ function _searchRoutes({fromId,toId,date,passengers,seatClass}){
     const arr=new Date(dep.getTime()+(travelMins+changes*25)*60000);
     const tt=TRAIN_TYPES[Math.floor(rnd()*TRAIN_TYPES.length)];
     const trainNum=tt+' '+(100+Math.floor(rnd()*900));
-    const operator=isCross?'Eurostar':(OPERATORS[from.country]||'DB (Deutsche Bahn)');
+    const operator=isCross?'Eurostar':(OPERATORS[from.country]||'Nationale Bahn');
     const amenities=AMENITIES_BY_TYPE[tt]||AMENITIES_BY_TYPE.IC;
     const isNight=depH>=22||depH<=5;
     const basePrice=_basePrice(dist,seatClass,passengers);
@@ -931,7 +911,11 @@ async function api(method, path, body) {
   // STATIONS
   if (key==='GET /stations/search') {
     const l=String(q.q||'').toLowerCase(); if(!l) return [];
-    return STATIONS.filter(s=>s.name.toLowerCase().includes(l)||s.city.toLowerCase().includes(l)||s.id.toLowerCase()===l||s.country.toLowerCase().includes(l)).slice(0,10);
+    const fold=t=>t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const lf=fold(l);
+    const hits=STATIONS.filter(s=>fold(s.name).includes(lf)||fold(s.city).includes(lf)||s.id.toLowerCase()===l);
+    hits.sort((a,b)=>{const pa=fold(a.name).startsWith(lf)?0:1, pb=fold(b.name).startsWith(lf)?0:1; return pa-pb||a.name.length-b.name.length;});
+    return hits.slice(0,10);
   }
   if (key==='GET /stations') return STATIONS;
 
